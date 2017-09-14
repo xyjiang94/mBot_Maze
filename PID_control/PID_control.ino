@@ -4,18 +4,18 @@
 // Motor setup
 MeDCMotor motor1(M1);
 MeDCMotor motor2(M2);
-uint8_t motorSpeed = 100;
+uint8_t motorSpeed = 50;
+double errorL = 0;
+double errorR = 0;
 
 // UltrasonicSensor setup
 MeUltrasonicSensor frontUltra(PORT_3);
 Ultrasonic leftUltra(10,9);
-Ultrasonic rightUltra(A1,A0);
+Ultrasonic rightUltra(1,0);
 double frontDistance;
 double leftDistance;
 double rightDistance;
-
-
-
+  
 // Buzzer setup
 MeBuzzer buzzer;
 
@@ -36,41 +36,22 @@ void loop() {
   {
     run();
   }
-  else
-  {
-    stop();
-  }
-  delay(50);
-
 }
 
 void run() {
+  if (rightDistance < 10.0)
+  {
+    buzzer.tone(394, 100);
+  }
   frontDistance = frontUltra.distanceCm();
   leftDistance = leftUltra.Ranging(CM);
   rightDistance = rightUltra.Ranging(CM);
+  double avrgDistance = (leftDistance + rightDistance) / 2;
+  errorL = avrgDistance - leftDistance;
+  errorR = avrgDistance - rightDistance;
+  motor1.run(-(motorSpeed + errorL * 2));
+  motor2.run(motorSpeed + errorR * 2);
 
-  if (leftDistance > 10.0)
-  {
-    motor1.run(-motorSpeed);
-    motor2.run(motorSpeed);
-    buzzer.tone(394, 100);
-    buzzer.tone(523, 100);  
-  }
-  else
-  {
-    motor1.stop();
-    motor2.stop();
-
-    for (int i = 0; i < 10; i++)
-    {
-      buzzer.tone(5000, 100);
-      delay(100);
-    }
-
-    motor1.run(motorSpeed);
-    motor2.run(-motorSpeed);
-    delay(5000);
-  }
   delay(100);
 }
 
@@ -79,4 +60,5 @@ void stop()
   motor1.stop();
   motor2.stop();
 }
+
 
