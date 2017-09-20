@@ -13,6 +13,7 @@ MeDCMotor motor2(M2);
 int motorSpeed = 100;
 int deltaSpeed = 50;
 int turnSpeed = 150;
+int leftTurnCount = 0;
 
 // Button setup
 bool isOn = false;
@@ -71,7 +72,14 @@ void oneInchForward()
 void turnLeft()
 {
       Serial.println("****TRUN LEFT");
+      Serial.println(leftTurnCount);
 //      driveMotor(2 * motorSpeed, 2 * motorSpeed, 825);
+      if (leftTurnCount == 3)
+      {
+        leftTurnCount = 0;
+        return;
+      }
+      leftTurnCount ++;
       while (!hasTurnLeft(getValue())) 
       {
         driveMotor(turnSpeed, turnSpeed, 50);
@@ -155,6 +163,7 @@ void solve()
     case B001111:
     case B000011:
     {
+      leftTurnCount = 0;
       oneInchForward();
       pattern = getValue();
       if (pattern == B111111)
@@ -172,6 +181,7 @@ void solve()
     // T cross / x cross / end
     case B000000:
     {
+        leftTurnCount = 0;
         oneInchForward();
         pattern = getValue();
         if (pattern = B000000)
@@ -189,7 +199,10 @@ void solve()
 
     //dead end
     case B111111:
-    UTurn();
+    {
+      UTurn();
+      leftTurnCount = 0;
+    }
     break;
 
     default:

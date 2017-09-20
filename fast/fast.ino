@@ -10,9 +10,11 @@ uint8_t pattern;
 // M2 - right
 MeDCMotor motor1(M1);
 MeDCMotor motor2(M2);
-int motorSpeed = 100;
-int deltaSpeed = 50;
-int turnSpeed = 150;
+int delayTime = 1;
+int motorSpeed = 300;
+int deltaSpeed = 100;
+int turnSpeed = 300;
+int leftTurnCount = 0;
 
 // Button setup
 bool isOn = false;
@@ -54,28 +56,39 @@ void driveMotor(int lSpeed, int rSpeed, unsigned long t)
 
 boolean hasTurnLeft(uint8_t pattern)
 {
-  return (pattern == B111110 || pattern == B111101 || pattern == B111100 || pattern == B111001);
+  return pattern = B110111;
+//  return (pattern == B111110 || pattern == B111101 || pattern == B111100 || pattern == B111001);
 }
 
 boolean hasTurnRight(uint8_t pattern)
 {
-  return (pattern == B011111 || pattern == B101111 || pattern == B100111 || pattern == B100111);
+  return pattern = B110111;
+//  return (pattern == B011111 || pattern == B101111 || pattern == B100111 || pattern == B100111);
 } 
 
 void oneInchForward()
 {
       Serial.println("****ONE Inch Forward");
-      driveMotor(- motorSpeed, motorSpeed, 500);
+      driveMotor(- motorSpeed, motorSpeed, 166);
 }
 
 void turnLeft()
 {
       Serial.println("****TRUN LEFT");
+      Serial.println(leftTurnCount);
 //      driveMotor(2 * motorSpeed, 2 * motorSpeed, 825);
+      if (leftTurnCount == 3)
+      {
+        leftTurnCount = 0;
+        return;
+      }
+      leftTurnCount ++;
       while (!hasTurnLeft(getValue())) 
       {
-        driveMotor(turnSpeed, turnSpeed, 50);
+        driveMotor(turnSpeed, turnSpeed, delayTime);
       }
+            Serial.println("--- DONE TRUN LEFT!!!!!!!!!!!!!!!!!!!");
+
 }
 
 void turnRight()
@@ -84,7 +97,7 @@ void turnRight()
 //      driveMotor(- 2 * motorSpeed, - 2 * motorSpeed, 825);
       while (!hasTurnRight(getValue())) 
       {
-        driveMotor(- turnSpeed, - turnSpeed, 50);
+        driveMotor(- turnSpeed, - turnSpeed, delayTime);
       }
 }
 
@@ -94,26 +107,26 @@ void UTurn()
 //      driveMotor(- 2 * motorSpeed, - 2 * motorSpeed, 1500);
       while (!hasTurnRight(getValue())) 
       {
-        driveMotor(- turnSpeed, - turnSpeed, 50);
+        driveMotor(- turnSpeed, - turnSpeed, delayTime);
       }
 }
 
 void forward()
 {
       Serial.println("****Forward");
-      driveMotor(- motorSpeed, motorSpeed, 50);
+      driveMotor(- motorSpeed, motorSpeed, delayTime);
 }
 
 void slightlyLeft()
 {
       Serial.println("****Slightly Left");
-      driveMotor(- motorSpeed + deltaSpeed, motorSpeed + deltaSpeed, 50); 
+      driveMotor(- motorSpeed + deltaSpeed, motorSpeed + deltaSpeed, delayTime); 
 }
 
 void slightlyRight()
 {
       Serial.println("****Slightly Right");
-      driveMotor(- motorSpeed - deltaSpeed, motorSpeed - deltaSpeed, 50); 
+      driveMotor(- motorSpeed - deltaSpeed, motorSpeed - deltaSpeed, delayTime); 
 }
 
 void solve()
@@ -155,6 +168,7 @@ void solve()
     case B001111:
     case B000011:
     {
+      leftTurnCount = 0;
       oneInchForward();
       pattern = getValue();
       if (pattern == B111111)
@@ -172,6 +186,7 @@ void solve()
     // T cross / x cross / end
     case B000000:
     {
+        leftTurnCount = 0;
         oneInchForward();
         pattern = getValue();
         if (pattern = B000000)
@@ -189,7 +204,10 @@ void solve()
 
     //dead end
     case B111111:
-    UTurn();
+    {
+      UTurn();
+      leftTurnCount = 0;
+    }
     break;
 
     default:
